@@ -1,16 +1,24 @@
 require("dotenv").config();
 const express = require("express");
+const cors = require("cors");
 const mongoose = require("mongoose");
-const { getAllMovies } = require("./controllers/movieController");
+const {
+  getAllMovies,
+  getMovieDetails,
+} = require("./controllers/movieController");
 
 const app = express();
 const API_PORT = process.env.PORT || "3001";
 
-app.get("/", (req, res) => {
+app.use(cors());
+
+app.get("/", (_req, res) => {
   res.send({ success: true });
 });
 
 app.get("/movies", getAllMovies);
+
+app.get("/movie/:id", getMovieDetails);
 
 const uri = `mongodb+srv://rajatSharma:${process.env.MONGO_PW}@moviecluster.r4mjtxv.mongodb.net/sample_mflix?retryWrites=true&w=majority`;
 
