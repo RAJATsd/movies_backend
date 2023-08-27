@@ -2,11 +2,13 @@ const MovieModel = require("../models/movie");
 
 exports.getAllMovies = async (req, res) => {
   try {
-    const { sortBy, genre, year, page } = req.query;
+    const { sortBy, genre, year, page, query } = req.query;
+    const regexPattern = new RegExp(`\\b${query}\\b`, "i");
     const pageNumber = parseInt(page);
     const dbQuery = MovieModel.find({
       ...(year && { year: parseInt(year) }),
       ...(genre && { genres: { $in: [genre] } }),
+      ...(query && { title: { $regex: regexPattern } }),
     });
 
     if (sortBy && (sortBy === "rating" || sortBy === "release")) {
