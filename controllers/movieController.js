@@ -67,7 +67,7 @@ exports.addMovieToLikeOrWatchList = async (req, res) => {
       throw "required params were not sent correctly";
     }
 
-    let document = WatchlistAndLikeModel.findOne({ userId });
+    let document = await WatchlistAndLikeModel.findOne({ userId });
 
     if (!document) {
       document = new WatchlistAndLikeModel({ userId });
@@ -111,7 +111,8 @@ exports.removeWatchlistOrLike = async (req, res) => {
 
     return res.json({
       message: "Movie removed successfully",
-      movieId: movieId,
+      movieId,
+      entity,
     });
   } catch (err) {
     return res.send(err);
