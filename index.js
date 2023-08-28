@@ -5,6 +5,9 @@ const mongoose = require("mongoose");
 const {
   getAllMovies,
   getMovieDetails,
+  getWatchListAndLikes,
+  addMovieToLikeOrWatchList,
+  removeWatchlistOrLike,
 } = require("./controllers/movieController");
 
 const app = express();
@@ -19,6 +22,12 @@ app.get("/", (_req, res) => {
 app.get("/movies", getAllMovies);
 
 app.get("/movie/:id", getMovieDetails);
+
+app.get("/watchlistandlike", getWatchListAndLikes);
+
+app.post("/watchlistandlike/:movieId/:entity", addMovieToLikeOrWatchList);
+
+app.delete("/watchlistandlike/:movieId/:entity", removeWatchlistOrLike);
 
 const uri = `mongodb+srv://rajatSharma:${process.env.MONGO_PW}@moviecluster.r4mjtxv.mongodb.net/sample_mflix?retryWrites=true&w=majority`;
 
