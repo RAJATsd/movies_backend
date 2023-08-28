@@ -8,12 +8,17 @@ const {
   getWatchListAndLikes,
   addMovieToLikeOrWatchList,
   removeWatchlistOrLike,
+  addNewMovie,
+  editMovieDetails,
+  deleteMovie,
 } = require("./controllers/movieController");
 
 const app = express();
 const API_PORT = process.env.PORT || "3001";
 
 app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 app.get("/", (_req, res) => {
   res.send({ success: true });
@@ -22,6 +27,12 @@ app.get("/", (_req, res) => {
 app.get("/movies", getAllMovies);
 
 app.get("/movie/:id", getMovieDetails);
+
+app.post("/movie", addNewMovie);
+
+app.put("/movie/:movieId", editMovieDetails);
+
+app.delete("/movie/:movieId", deleteMovie);
 
 app.get("/watchlistandlike", getWatchListAndLikes);
 

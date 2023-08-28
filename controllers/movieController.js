@@ -7,15 +7,24 @@ exports.getAllMovies = async (req, res) => {
     const { sortBy, genre, year, page, query } = req.query;
     const regexPattern = new RegExp(`\\b${query}\\b`, "i");
     const pageNumber = parseInt(page);
+    const isSortbyValueValid =
+      sortBy && (sortBy === "rating" || sortBy === "release");
 
     const findObject = {
+      ...(isSortbyValueValid && {
+        $and: [
+          { "imdb.rating": { $exists: true } },
+          { "imdb.rating": { $ne: null } },
+          { "imdb.rating": { $type: "number" } },
+        ],
+      }),
       ...(year && { year: parseInt(year) }),
       ...(genre && { genres: { $in: [genre] } }),
       ...(query && { title: { $regex: regexPattern } }),
     };
-    const dbQuery = MovieModel.find(findObject);
 
-    if (sortBy && (sortBy === "rating" || sortBy === "release")) {
+    let dbQuery = MovieModel.find(findObject);
+    if (isSortbyValueValid) {
       dbQuery = dbQuery.sort({
         ...(sortBy === "rating" ? { "imdb.rating": -1 } : { release: -1 }),
       });
@@ -81,7 +90,7 @@ exports.addMovieToLikeOrWatchList = async (req, res) => {
 
     const updatedData = await document.save();
 
-    return res.send({ message: "Saved successully", ...updatedData });
+    return res.send({ message: "Saved successully", ...updatedData._doc });
   } catch (err) {
     return res.send(err);
   }
@@ -115,6 +124,58 @@ exports.removeWatchlistOrLike = async (req, res) => {
       entity,
     });
   } catch (err) {
+    return res.send(err);
+  }
+};
+
+exports.addNewMovie = async (req, res) => {
+  try {
+    const { title, plot, year, ...rest } = req.body;
+    if (!title || !plot || !year) {
+      throw "title plot or year missing";
+    }
+
+    const newMovie = new MovieModel({ title, plot, year, ...rest });
+    const savedMovie = await newMovie.save();
+
+    return res.send({ message: "Movie added successully", ...savedMovie._doc });
+  } catch (err) {
+    return res.send(err);
+  }
+};
+
+exports.editMovieDetails = async (req, res) => {
+  try {
+    const { movieId } = req.params;
+    const { _id, ...rest } = req.body;
+    if (_id) {
+      throw "id cannot be changed";
+    }
+
+    const updatedMovie = await MovieModel.findOneAndUpdate(
+      { _id: movieId },
+      { ...rest },
+      { new: true }
+    );
+
+    return res.send({
+      message: "Movie updated successully",
+      ...updatedMovie._doc,
+    });
+  } catch (err) {
+    return res.send(err);
+  }
+};
+
+exports.deleteMovie = async (req, res) => {
+  try {
+    const { movieId } = req.params;
+    await MovieModel.findByIdAndDelete(movieId);
+    return res.send({
+      message: "Movie deleted successully",
+      movieId,
+    });
+  } catch (e) {
     return res.send(err);
   }
 };
